@@ -1,4 +1,4 @@
-import { FILE, PIECETYPE, SAVEGAMEPREFIX, SIDE } from '../globals';
+import { FILE, PIECETYPE, SAVEGAMEPREFIX, SIDE, POSSIBLESQCOLOR } from '../globals';
 import { Board } from './Board';
 import { ChessAi } from './ChessAi';
 import { ChessUi } from './ui/ChessUi';
@@ -30,10 +30,27 @@ export class Typechess {
         this.match = new Match(new Team(SIDE.white), new Team(SIDE.black), this.ai);
 
         this.match.updateStatusCallback = (msg: string) => { return this.updateStatus(msg); };
-
-        this.setupPieces(this.match.team1, is960);
-        this.setupPieces(this.match.team2, is960);
-        //get piece name PIECETYPE[cell.piece.type]
+        if (is960) {
+            let kingPosNum = this.getRandRange(8, [0, 7]);
+            let rPos = [this.getRandRange(8, [kingPosNum, ...(Array.apply(null, { length: kingPosNum }).map(Number.call, Number))]),
+            this.getRandRange(8, [kingPosNum, ...Array.apply(null, { length: 8 - kingPosNum }).map(Number.call, Number).map(number => number + (kingPosNum + 1))])];
+            let bPos = [this.getRandRange(8, [0, 2, 4, 6, kingPosNum, ...rPos]), this.getRandRange(8, [1, 3, 5, 7, kingPosNum, ...rPos])];
+            let qPosNum = this.getRandRange(8, [kingPosNum, ...rPos, ...bPos]);
+            let kPos = [this.getRandRange(8, [kingPosNum, qPosNum, ...rPos, ...bPos])]
+            kPos.push(this.getRandRange(8, [kingPosNum, qPosNum, ...rPos, ...bPos, kPos[0]]))
+            let boardSetup = {
+                kingPosNum: kingPosNum,
+                rPos: rPos,
+                bPos: bPos,
+                qPosNum: qPosNum,
+                kPos: kPos
+            }
+            this.setupPieces(this.match.team1, is960, boardSetup);
+            this.setupPieces(this.match.team2, is960, boardSetup);
+        } else {
+            this.setupPieces(this.match.team1, is960);
+            this.setupPieces(this.match.team2, is960);
+        }
 
         this.ui.callback_load = (savedGame) => { return this.loadGame(savedGame); };
         this.ui.callback_reset = (e) => { return this.reset(); };
@@ -186,7 +203,7 @@ export class Typechess {
         }
     }
 
-    setupPieces(team: Team, is960: boolean) {
+    setupPieces(team: Team, is960: boolean, setup960: any = undefined) {
         let filesArr = Object.keys(FILE),
             pawnRank = team.side == SIDE.white ? "2" : "7",
             rank = team.side == SIDE.white ? '1' : '8';
@@ -213,14 +230,13 @@ export class Typechess {
                 piece.move(this.board.getCellByCoord(coord));
             });
         } else {
+            let rCount = 0;
             let bCount = 0;
             let kCount = 0;
-            let kingPosNum = (Math.floor(Math.random() * 6) + 1);
-            let restFill: Array<Piece> = [];
             let coord = '';
+            let { kingPosNum, rPos, bPos, qPosNum, kPos } = setup960;
             team.pieces.forEach((piece, i) => {
                 if (i < filesArr.length && piece.type == PIECETYPE.pawn) {
-                    console.log(i)
                     coord = filesArr[i + (filesArr.length / 2)] + pawnRank;
                     piece.move(this.board.getCellByCoord(coord));
                 }
@@ -231,29 +247,26 @@ export class Typechess {
                         isPlaced = piece.setupMove(this.board.getCellByCoord(coord));
                     }
                 }
-                // else if (piece.type === PIECETYPE.rook) {
-                //     let isPlaced = false;
-                //     // while (!isPlaced) {
-                //     coord = kCount === 0 ? filesArr[(Math.floor(Math.random() * kingPosNum) + (filesArr.length / 2))] + rank : filesArr[(8 + (filesArr.length / 2))] + rank;
-                //     isPlaced = piece.setupMove(this.board.getCellByCoord(coord));
-                //     // }
-                // }
+                else if (piece.type === PIECETYPE.rook) {
+                    coord = rCount === 0 ? filesArr[rPos[0] + (filesArr.length / 2)] + rank : filesArr[rPos[1] + (filesArr.length / 2)] + rank;
+                    piece.setupMove(this.board.getCellByCoord(coord));
+                    rCount++;
+                }
                 else if (piece.type === PIECETYPE.bishop) {
-                    let isPlaced = false;
-                    while (!isPlaced) {
-                        coord = bCount === 0 ? filesArr[(Math.floor(Math.random() * 8 / 2) * 2) + (filesArr.length / 2)] + rank : filesArr[(Math.floor(Math.random() * 7 / 2) * 2 + 1) + (filesArr.length / 2)] + rank;
-                        isPlaced = piece.setupMove(this.board.getCellByCoord(coord));
-                        console.log("AHHH")
-                    }
+                    coord = bCount === 0 ? filesArr[bPos[0] + (filesArr.length / 2)] + rank : filesArr[bPos[1] + (filesArr.length / 2)] + rank;
+                    piece.setupMove(this.board.getCellByCoord(coord));
                     bCount++;
                 }
+                else if (piece.type === PIECETYPE.queen) {
+                    coord = filesArr[qPosNum + (filesArr.length / 2)] + rank;
+                    piece.setupMove(this.board.getCellByCoord(coord));
+                }
                 else {
-                    restFill.push(piece);
+                    coord = kCount === 0 ? filesArr[kPos[0] + (filesArr.length / 2)] + rank : filesArr[kPos[1] + (filesArr.length / 2)] + rank;
+                    piece.setupMove(this.board.getCellByCoord(coord));
+                    kCount++;
                 }
             })
-
-
-            console.error("960 not implemented yet")
         }
     }
 
@@ -333,5 +346,12 @@ export class Typechess {
         let latestTurn: Turn = this.match.turns[this.match.turns.length - 1];
         if (latestTurn != undefined)
             latestTurn.msgs.push(msg);
+    }
+
+    private getRandRange(range: number, exclusions: Array<number> = []): number {
+        let possible: Array<number> = Array.apply(null, { length: range }).map(Number.call, Number);
+        exclusions.forEach(ele => { if (possible.includes(ele)) possible.splice(possible.indexOf(ele), 1); });
+        let rNum = Math.floor(Math.random() * possible.length);
+        return (possible[rNum])
     }
 }

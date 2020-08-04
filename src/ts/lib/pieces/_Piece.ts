@@ -123,7 +123,6 @@ export abstract class Piece {
             this._coord = cell.getCoord();
             cell.piece = this;
             this.possibleMoves = [];
-
             return true;
         }
         return false;

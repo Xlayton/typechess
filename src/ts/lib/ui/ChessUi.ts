@@ -250,7 +250,7 @@ export class ChessUi {
 
     private _click_reset(event): Promise<any> {
         let title = "Reset Board",
-            msg = "Are you sure you want to reset the board to a new game?",
+            msg = "Are you sure you want to reset the board to a new regular game?",
             modal: Modal;
 
         modal = new Modal(title, msg, [true, "Reset Board"], true);
