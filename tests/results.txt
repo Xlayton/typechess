@@ -1,5 +1,5 @@
 Typechess Automated Testing 
-Thu 02/27/2020 18:29:11.06 
+Tue 08/04/2020 16:43:53.83 
 
 
   Test Board
@@ -24,6 +24,14 @@ Thu 02/27/2020 18:29:11.06
     isOccupied()
       √ should return true if the cell is assigned a piece
       √ should return false if the cell is not assigned a piece
+
+  Test Chess960
+    √ should be constructable
+    √ should have placed all pieces
+    √ should put opposing peices in same rank
+    √ should still put peices in appropiate file
+    √ should put a rook on either side of the king
+    √ should put bishops on alternate colors
 
   Test ChessUi
     √ should be constructable
@@ -52,5 +60,5 @@ Thu 02/27/2020 18:29:11.06
       √ should return an array of coordinates conforming to a forward right diagonal line
 
 
-  26 passing (79ms)
+  32 passing (95ms)
 

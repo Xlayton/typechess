@@ -25,13 +25,13 @@ describe('Test Piece', () => {
             const jsdom = require('jsdom');
             const { JSDOM } = jsdom;
             let canvas;
-            let dom = new JSDOM(`<!DOCTYPE html><canvas id="test_canvas" width="100" height="100"></canvas><img id="test_img" src="pieces.png">`,{
+            let dom = new JSDOM(`<!DOCTYPE html><canvas id="test_canvas" width="100" height="100"></canvas><img id="test_img" src="pieces.png">`, {
                 resources: 'usable',
-                url: 'file:///C:/Users/Dan/Dev/Repos/typechess/dist/'
+                url: 'file:///D:/_dev/Existing/typechess/dist/'
             });
 
             document = dom.window.document,
-            canvas = document.getElementById('test_canvas');
+                canvas = document.getElementById('test_canvas');
             img = document.getElementById('test_img');
             ctx = canvas.getContext('2d');
             xPos = Math.floor(Math.random() * canvas.width);
@@ -44,13 +44,13 @@ describe('Test Piece', () => {
 
             document.addEventListener('load', () => {
                 try {
-                    piece.draw(img, ctx, xPos, yPos, cellWidth); 
+                    piece.draw(img, ctx, xPos, yPos, cellWidth);
                 }
-                catch(e) {
+                catch (e) {
                     err = e;
                     // console.log(e);
                 }
-    
+
                 expect(err).to.equal(undefined);
                 done();
             });
@@ -72,7 +72,7 @@ describe('Test Piece', () => {
         });
     });
 
-    
+
     describe('move()', () => {
         let piece = PieceFactory();
 
@@ -104,7 +104,7 @@ describe('Test Piece', () => {
         });
     });
     describe('getCoord()', () => {
-        it('should return the file-first coord of the cell which it occupies',  () => {
+        it('should return the file-first coord of the cell which it occupies', () => {
             let cell = CellFactory(),
                 piece = PieceFactory();
             piece.possibleMoves = [cell.getCoord()];
@@ -119,7 +119,7 @@ describe('Test Piece', () => {
     describe('getDiagMoves()', () => {
         it('should return an array of coordinates conforming to a forward right diagonal line', () => {
             let piece = PieceFactory(),
-                cell = CellFactory({file: FILE.a, rank: 2}),
+                cell = CellFactory({ file: FILE.a, rank: 2 }),
                 board = BoardFactory(),
                 res: string[] = new Array();
 
