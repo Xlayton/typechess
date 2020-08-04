@@ -12,8 +12,8 @@ window.addEventListener('load', (load_event) => {
         match = null,
         pieces = document.getElementById(config.piecesImgId) as HTMLImageElement,
         ui_div = document.getElementById(config.uiId) as HTMLDivElement;
-        
-    match = new Typechess(canvas, pieces, ui_div);
+
+    match = new Typechess(canvas, pieces, ui_div, false);
     match.draw();
 
     canvas.addEventListener('click', (event) => {

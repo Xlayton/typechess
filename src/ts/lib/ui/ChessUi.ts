@@ -18,6 +18,7 @@ export class ChessUi {
     callback_load = null;
     callback_reset = null;
     callback_undo = null;
+    callback_960 = null;
 
     constructor(ui_div: HTMLDivElement) {
         this._ui_div = ui_div;
@@ -30,7 +31,8 @@ export class ChessUi {
             saveBtn = document.createElement("button"),
             loadBtn = document.createElement("button"),
             resetBtn = document.createElement("button"),
-            undoBtn = document.createElement("button");
+            undoBtn = document.createElement("button"),
+            chess960Btn = document.createElement("button");
 
         saveBtn.classList.add("success");
         resetBtn.classList.add("danger");
@@ -39,28 +41,30 @@ export class ChessUi {
         loadBtn.innerHTML = "📁 Load";
         resetBtn.innerHTML = "↻ Reset";
         undoBtn.innerHTML = "↶ Undo";
+        chess960Btn.innerHTML = "♟ Chess960"
 
-        saveBtn.onclick = (e) => { 
-            this._click_save(e).then((saveGameName) => { 
-                if(typeof(saveGameName) == 'string') {
-                    if(typeof(this.callback_save) == 'function')
-                        this.callback_save(saveGameName); 
+
+        saveBtn.onclick = (e) => {
+            this._click_save(e).then((saveGameName) => {
+                if (typeof (saveGameName) == 'string') {
+                    if (typeof (this.callback_save) == 'function')
+                        this.callback_save(saveGameName);
                     else
                         this._click_fallback(e);
                 }
-            }); 
-        } 
-        
+            });
+        }
+
         loadBtn.onclick = (e) => {
             this._click_load(e).then((params) => {
-                if(typeof(params) == 'object' && params.name){
+                if (typeof (params) == 'object' && params.name) {
                     let savedGame = JSON.parse(window.localStorage.getItem(SAVEGAMEPREFIX + "_" + params.name)) as SaveGame;
-                    if(params.delete) {
+                    if (params.delete) {
                         console.log('delete game: ' + savedGame.name);
                     }
                     else {
                         // console.log('load game: ' + savedGame.name);
-                        if(typeof(this.callback_load) == 'function')
+                        if (typeof (this.callback_load) == 'function')
                             this.callback_load(savedGame);
                         else
                             this._click_fallback(e);
@@ -69,11 +73,21 @@ export class ChessUi {
             });
         };
 
+        chess960Btn.onclick = (e) => {
+            this._click_960(e).then((value) => {
+                if (value === true) {
+                    if (typeof (this.callback_960) == 'function')
+                        this.callback_960(e);
+                    else
+                        this._click_fallback(e);
+                }
+            })
+        }
         // resetBtn.onclick = typeof(this.callback_reset) == 'function' ? this.callback_reset : this._click_fallback;
         resetBtn.onclick = (e) => {
             this._click_reset(e).then((value) => {
-                if(value === true) {
-                    if (typeof(this.callback_reset) == 'function')
+                if (value === true) {
+                    if (typeof (this.callback_reset) == 'function')
                         this.callback_reset(e);
                     else
                         this._click_fallback(e);
@@ -81,9 +95,9 @@ export class ChessUi {
             });
         };
 
-        undoBtn.onclick = typeof(this.callback_undo) == 'function' ? this.callback_undo : this._click_fallback;
+        undoBtn.onclick = typeof (this.callback_undo) == 'function' ? this.callback_undo : this._click_fallback;
 
-        aside.append(saveBtn, loadBtn, resetBtn, undoBtn);
+        aside.append(chess960Btn, saveBtn, loadBtn, resetBtn, undoBtn);
         this._ui_div.appendChild(aside);
     }
 
@@ -94,7 +108,7 @@ export class ChessUi {
 
         score_h4.innerHTML = "Score";
         msgs_h4.innerHTML = "Game Log";
-        
+
         header.append(score_h4, msgs_h4);
         this._ui_div.appendChild(header);
     }
@@ -123,7 +137,7 @@ export class ChessUi {
         black_hdr.classList.add("score-hdr", "black");
         black_score.classList.add("black");
         black_score.id = "score_black";
-        
+
         white_hdr.innerHTML = "White:";
         white_score.innerHTML = "0";
         black_hdr.innerHTML = "Black:";
@@ -147,6 +161,15 @@ export class ChessUi {
         return false;
     }
 
+    private _click_960(event): Promise<any> {
+        let title = "Create Chess 960 Board",
+            msg = "Are you sure you want to reset the board to a new game of Chess960?",
+            modal: Modal;
+
+        modal = new Modal(title, msg, [true, "Chess 960"], true);
+        return modal.show();
+    }
+
     private _click_load(event): Promise<any> {
         let title = "Load Game",
             msg = document.createElement("div"),
@@ -154,9 +177,9 @@ export class ChessUi {
             modal: Modal,
             saveGames: Array<SaveGame> = [];
 
-        for(let i = 0; i < window.localStorage.length; i++) {
+        for (let i = 0; i < window.localStorage.length; i++) {
             let key = window.localStorage.key(i);
-            if(key.indexOf(SAVEGAMEPREFIX) == 0) {
+            if (key.indexOf(SAVEGAMEPREFIX) == 0) {
                 let saveGame = JSON.parse(window.localStorage.getItem(key)) as SaveGame;
                 saveGames.push(saveGame);
             }
@@ -167,20 +190,20 @@ export class ChessUi {
             let formGroup = document.createElement("div"),
                 radioBtn = document.createElement("input"),
                 radioLbl = document.createElement("label");
-            
+
             formGroup.className = "form-group";
             radioBtn.type = "radio";
             radioBtn.name = "savegame";
             radioBtn.value = saveGame.name;
             radioBtn.id = (i + 1) + "_" + saveGame.name;
 
-            if(i == 0) {
+            if (i == 0) {
                 radioBtn.checked = true;
             }
 
             saveGame.saveDate = new Date(saveGame.saveDate);
             radioLbl.setAttribute("for", radioBtn.id);
-            radioLbl.innerHTML = saveGame.saveDate.toLocaleDateString() 
+            radioLbl.innerHTML = saveGame.saveDate.toLocaleDateString()
                 + " " + saveGame.saveDate.toLocaleTimeString()
                 + " - " + saveGame.name;
 
@@ -206,7 +229,7 @@ export class ChessUi {
         return modal.show().then((value) => {
             let chosenGameElm = document.querySelector('input[name="savegame"]:checked') as HTMLInputElement;
 
-            switch(value) {
+            switch (value) {
                 case true:
                     return {
                         delete: false,
@@ -227,7 +250,7 @@ export class ChessUi {
 
     private _click_reset(event): Promise<any> {
         let title = "Reset Board",
-            msg = "Are you sure you want to reset the board to a new game?",
+            msg = "Are you sure you want to reset the board to a new regular game?",
             modal: Modal;
 
         modal = new Modal(title, msg, [true, "Reset Board"], true);
@@ -247,9 +270,9 @@ export class ChessUi {
         `;
 
         modal = new Modal(title, msg, [true, "Save Game"]);
-        
+
         return modal.show().then((value) => {
-            if(value === true) {
+            if (value === true) {
                 let saveGameName = (document.getElementById("saveGameName") as HTMLInputElement).value;
                 return saveGameName;
             }
@@ -259,7 +282,7 @@ export class ChessUi {
     }
 
     draw(white_score: number, black_score: number, turns: Turn[]) {
-        if(!this._initialized) {
+        if (!this._initialized) {
             this._add_header();
             this._add_score();
             this._add_msgs();
@@ -272,7 +295,7 @@ export class ChessUi {
         this._score_white.innerHTML = white_score.toString();
 
         // highlight active team
-        if(turns.length % 2) {
+        if (turns.length % 2) {
             this._score_hdr_white.classList.remove("active");
             this._score_white.classList.remove("active");
             this._score_hdr_black.classList.add("active");
@@ -287,12 +310,12 @@ export class ChessUi {
 
         // update msgs
         this._msgs_ul.innerHTML = "";
-        for(let i = 0; i < turns.length; i++) {
+        for (let i = 0; i < turns.length; i++) {
             let turn = turns[turns.length - 1 - i];
-            for(let j = 0; j < turn.msgs.length; j++) {
+            for (let j = 0; j < turn.msgs.length; j++) {
                 let msg = turn.msgs[turn.msgs.length - 1 - j],
                     msg_div = document.createElement("li");
-                
+
                 msg_div.innerHTML = msg;
                 this._msgs_ul.appendChild(msg_div);
             }
