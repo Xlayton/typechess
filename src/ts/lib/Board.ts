@@ -1,6 +1,8 @@
-import { CANVASMARGIN, CANVASWIDTH, CELLWIDTH, DARKSQCOLOR, FILE, NUMFILES, 
-    NUMRANKS, LIGHTSQCOLOR, POSSIBLESQCOLOR, CASTLEABLESQCOLOR, 
-    UIFONTBTN } from '../globals';
+import {
+    CANVASMARGIN, CANVASWIDTH, CELLWIDTH, DARKSQCOLOR, FILE, NUMFILES,
+    NUMRANKS, LIGHTSQCOLOR, POSSIBLESQCOLOR, CASTLEABLESQCOLOR,
+    UIFONTBTN
+} from '../globals';
 import { Cell } from './Cell';
 
 /**
@@ -16,6 +18,7 @@ export class Board {
     pieces_img: HTMLImageElement;
 
     constructor(canvas: HTMLCanvasElement, pieces_img: HTMLImageElement) {
+
         this.canvas = canvas;
         this.canvas.width = CANVASWIDTH;
         this.canvas.height = CANVASWIDTH;
@@ -27,8 +30,8 @@ export class Board {
         this._canvas_offset_x = (canvas.width - boardWidth) / 2;
         this._canvas_offset_y = CANVASMARGIN; // + 150;
 
-        for(let row = 0; row < NUMRANKS; row++) {
-            for(let col = 0; col < NUMFILES; col++) {
+        for (let row = 0; row < NUMRANKS; row++) {
+            for (let col = 0; col < NUMFILES; col++) {
                 let isLight = (row + col) % 2 ? true : false;
                 this.cells.push(new Cell(col, row + 1, isLight));
             }
@@ -38,15 +41,15 @@ export class Board {
     private _validateCoord(coord: string) {
         // a valid coordinate is presented as file + rank in a 
         // two character string; e.g. "d4"
-        if(coord.length != 2) {
+        if (coord.length != 2) {
             return false;
         }
-        else if(!isNaN(parseInt(coord[0])) || !Object.keys(FILE).includes(coord[0])) {
+        else if (!isNaN(parseInt(coord[0])) || !Object.keys(FILE).includes(coord[0])) {
             return false;
         }
         else {
             let coordRank = parseInt(coord[1]);
-            if(isNaN(coordRank) || coordRank > NUMRANKS || coordRank < 1) {
+            if (isNaN(coordRank) || coordRank > NUMRANKS || coordRank < 1) {
                 return false;
             }
 
@@ -88,7 +91,7 @@ export class Board {
             this.ctx.fillStyle = cell.isLight ? lightCol : darkCol;
 
             // highlight the active piece
-            if(cell.isOccupied() && cell.piece.active) { 
+            if (cell.isOccupied() && cell.piece.active) {
                 this.ctx.fillStyle = POSSIBLESQCOLOR;
             }
 
@@ -99,16 +102,16 @@ export class Board {
             this.ctx.beginPath();
             this.ctx.fillStyle = cell.isLight ? darkCol : lightCol;
             this.ctx.font = UIFONTBTN;
-            if(cell.rank == 1) {
+            if (cell.rank == 1) {
                 this.ctx.fillText(FILE[cell.file], (xPos + cellWidth - 10), (yPos + cellWidth - 5));
             }
-            if(cell.file == FILE.a) {
+            if (cell.file == FILE.a) {
                 this.ctx.fillText(cell.rank + '', xPos + 3, yPos + 15);
             }
             this.ctx.closePath();
 
             // highlight possible moves
-            if(cell.possibleMove) {
+            if (cell.possibleMove) {
                 // offset by half lineWidth so highlight fits within square
                 let lineWidth = 6,
                     pxPos = xPos + (lineWidth * 0.5),
@@ -119,7 +122,7 @@ export class Board {
                 this.ctx.lineWidth = lineWidth;
                 this.ctx.strokeStyle = POSSIBLESQCOLOR;
 
-                if(cell.castleable) {
+                if (cell.castleable) {
                     this.ctx.strokeStyle = CASTLEABLESQCOLOR;
                 }
 
@@ -129,14 +132,14 @@ export class Board {
             }
 
             // draw any pieces occupying this cell
-            if(cell.isOccupied()) {
+            if (cell.isOccupied()) {
                 cell.piece.draw(this.pieces_img, this.ctx, xPos, yPos, cellWidth);
             }
         });
     }
 
     getCellByCoord(coord: string) {
-        if(!this._validateCoord(coord)) {
+        if (!this._validateCoord(coord)) {
             // console.error('Board.getCellByCoord: invalid coord value.');
             return;
         }
